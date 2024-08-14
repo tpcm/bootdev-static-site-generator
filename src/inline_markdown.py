@@ -1,4 +1,15 @@
-from textnode import TextNode
+import re
+
+from textnode import (
+    TextNode,
+    text_type_text,
+    text_type_bold,
+    text_type_italic,
+    text_type_code,
+    text_type_link,
+    text_type_image
+)
+
 
 def split_nodes_delimiter(
         old_nodes: list[TextNode],
@@ -29,18 +40,29 @@ def split_nodes_delimiter(
                     new_nodes.append(TextNode(part, text_type))
     return new_nodes
 
+def extract_markdown_images(text: str):
+    alt_text_regex = r"\!\[(.*?)\]\((.*?\))"
+    return re.findall(alt_text_regex, text)
+
+def extract_markdown_links(text: str):
+    alt_text_regex = r"[^!]\[(.*?)\]\((.*?\))"
+    return re.findall(alt_text_regex, text)
+
     
 
 def main():    
-    text_type_text = "text"
-    text_type_bold = "bold"
-    text_type_italic = "italic"
-    text_type_code = "code"
-    text_type_link = "link"
-    text_type_image = "image"
-
     node = TextNode("This is text with a `code block` word", text_type_text)
     new_nodes = split_nodes_delimiter([node], "`", text_type_code)
+    print(new_nodes)
+
+    image_text = ("This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) \
+            and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)")
+    print(extract_markdown_images(image_text))
+    print(extract_markdown_links(image_text))
+    
+    link_text = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
+    print(extract_markdown_images(link_text))
+    print(extract_markdown_links(link_text))
 
 if __name__ == "__main__":
     main()
