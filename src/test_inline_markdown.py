@@ -5,7 +5,8 @@ from inline_markdown import (
     extract_markdown_links,
     extract_markdown_images,
     split_nodes_link,
-    split_nodes_image
+    split_nodes_image,
+    text_to_textnodes
 )
 
 from textnode import (
@@ -207,4 +208,88 @@ class TestSplitNodesImage(unittest.TestCase):
         self.assertListEqual(
             new_nodes,
             [node]
+        )
+
+class TestTextToTextNodes(unittest.TestCase):
+    def test_bold_italic_code_image_link(self):
+        text = "This is **text** with an *italic* word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+        new_nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            new_nodes,
+            [
+                TextNode("This is ", text_type_text),
+                TextNode("text", text_type_bold),
+                TextNode(" with an ", text_type_text),
+                TextNode("italic", text_type_italic),
+                TextNode(" word and a ", text_type_text),
+                TextNode("code block", text_type_code),
+                TextNode(" and an ", text_type_text),
+                TextNode("obi wan image", text_type_image, "https://i.imgur.com/fJRm4Vk.jpeg"),
+                TextNode(" and a ", text_type_text),
+                TextNode("link", text_type_link, "https://boot.dev"),
+            ]
+        )
+    def test_bold(self):
+        text = "This is **text**"
+        new_nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            new_nodes,
+            [
+                TextNode("This is ", text_type_text),
+                TextNode("text", text_type_bold),
+            ]
+        )
+    def test_image(self):
+        text = "This is image text with ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg)"
+        new_nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            new_nodes,
+            [
+                TextNode("This is image text with ", text_type_text),
+                TextNode("obi wan image", text_type_image, "https://i.imgur.com/fJRm4Vk.jpeg"),
+            ]
+        )
+    def test_link(self):
+        text = "This is link text with [obi wan link](https://i.imgur.com/fJRm4Vk.jpeg)"
+        new_nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            new_nodes,
+            [
+                TextNode("This is link text with ", text_type_text),
+                TextNode("obi wan link", text_type_link, "https://i.imgur.com/fJRm4Vk.jpeg"),
+            ]
+        )
+    def test_empty_string(self):
+        text = ""
+        new_nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            new_nodes,
+            []
+        )
+    def test_whitespace(self):
+        text = " "
+        new_nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            new_nodes,
+            [
+                TextNode(" ", text_type_text),
+            ]
+        )
+    def test_bold_whitespace(self):
+        text = "** **"
+        new_nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            new_nodes,
+            [
+                TextNode(" ", text_type_bold),
+            ]
+        )
+    def test_italic_whitespace(self):
+        text = "* *"
+        new_nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            new_nodes,
+            [
+                TextNode(" ", text_type_italic),
+            ]
         )

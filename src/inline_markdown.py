@@ -116,35 +116,22 @@ def split_nodes_image(old_nodes: list[str]):
             
     return new_nodes
 
+def text_to_textnodes(text) -> list:
+    original_nodes = [
+        TextNode(text=text, text_type=text_type_text, url=None)
+    ]
+    split_nodes = split_nodes_delimiter(old_nodes=original_nodes, delimiter="**", text_type=text_type_bold)
+    split_nodes = split_nodes_delimiter(old_nodes=split_nodes, delimiter="*", text_type=text_type_italic)
+    split_nodes = split_nodes_delimiter(old_nodes=split_nodes, delimiter="`", text_type=text_type_code)    
+    split_nodes = split_nodes_image(old_nodes=split_nodes)
+    split_nodes = split_nodes_link(old_nodes=split_nodes)
+    return split_nodes
+
+
+
 def main():    
-    # node = TextNode("This is text with a `code block` word", text_type_text)
-    # new_nodes = split_nodes_delimiter([node], "`", text_type_code)
-    # print(new_nodes)
 
-    # image_text = ("This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) \
-    #         and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)")
-    # print(extract_markdown_images(image_text))
-    # print(extract_markdown_links(image_text))
-    
-    # link_text = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
-    # print(extract_markdown_images(link_text))
-    # print(extract_markdown_links(link_text))
-
-    # node = TextNode(
-    #         # "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)",
-    #         "[to boot dev](https://www.boot.dev)",
-    #         text_type_text,
-    #     )
-    # new_nodes = split_nodes_link([node])
-    # print(new_nodes)
-
-    node = TextNode(
-            "This is text with a image ![to boot dev](https://www.boot.dev) and ![to youtube](https://www.youtube.com/@bootdotdev)",
-            # "![to boot dev](https://www.boot.dev)",
-            text_type_text,
-        )
-    new_nodes = split_nodes_image([node])
-    print(new_nodes)
-
+    text = "This is **text** with an *italic* word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+    print(text_to_textnodes(text))
 if __name__ == "__main__":
     main()
