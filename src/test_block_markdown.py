@@ -1,6 +1,7 @@
 import unittest
 
-from block_markdown import markdown_to_blocks, block_to_block_type
+from block_markdown import markdown_to_blocks, block_to_block_type, markdown_to_html_node
+from test_htmlnode import ParentNode, LeafNode
 
 class TestBlockMarkdown(unittest.TestCase):
     def test_markdown_to_block(self):
@@ -128,4 +129,25 @@ This is another list item"""
         self.assertEqual(
             block_type,
             "quote"
+        )
+
+class TestMarkdownToHtml(unittest.TestCase):
+    def test_small_markdown_success(self):
+        markdown = "# This is a heading\n\nThis is a paragraph of text. It has some words inside of it."
+        html_nodes = markdown_to_html_node(markdown)
+        self.assertEqual(
+            str(html_nodes),
+            str(ParentNode(
+                tag="div",
+                children=[
+                    ParentNode(
+                        tag="h1",
+                        children=[LeafNode(value="# This is a heading")]
+                    ),
+                    ParentNode(
+                        tag="paragraph",
+                        children=[LeafNode(value="This is a paragraph of text. It has some words inside of it.")]
+                    )
+                ]
+            ))
         )
