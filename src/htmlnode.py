@@ -39,7 +39,7 @@ class ParentNode(HTMLNode):
         if not self.children:
             raise ValueError() 
         def apply_to_html(child):
-            return child.to_html() 
+            return child.to_html()
         return f"<{self.tag}>" + "".join(map(apply_to_html, self.children)) + f"</{self.tag}>"
     
 def main():

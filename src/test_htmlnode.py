@@ -46,7 +46,7 @@ class TestParentNode(unittest.TestCase):
             children=[
                 LeafNode(tag="b", value="Bold text"),
                 LeafNode(tag=None, value="Normal text"),
-                LeafNode(tag="i", value="Italic text"),
+                LeafNode(tag="i", value="italic text"),
                 LeafNode(tag=None, value="Normal text"),
             ]
         )

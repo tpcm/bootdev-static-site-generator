@@ -142,11 +142,69 @@ class TestMarkdownToHtml(unittest.TestCase):
                 children=[
                     ParentNode(
                         tag="h1",
-                        children=[LeafNode(value="# This is a heading")]
+                        children=[LeafNode(value="This is a heading")]
                     ),
                     ParentNode(
-                        tag="paragraph",
+                        tag="p",
                         children=[LeafNode(value="This is a paragraph of text. It has some words inside of it.")]
+                    )
+                ]
+            ))
+        )
+    def test_small_markdown_list(self):
+        markdown = """# This is a heading
+
+This is a paragraph of text. It has some **bold** and *italic* words inside of it.
+
+* This is the first list item in a list block
+* This is a list item
+* This is another list item"""
+        html_nodes = markdown_to_html_node(markdown)
+        self.assertEqual(
+            str(html_nodes),
+            str(ParentNode(
+                tag="div",
+                children=[
+                    ParentNode(
+                        tag="h1",
+                        children=[LeafNode(value="This is a heading")]
+                    ),
+                    ParentNode(
+                        tag="p",
+                        children=[
+                            LeafNode(value="This is a paragraph of text. It has some "),
+                            LeafNode(tag="b", value="bold"),
+                            LeafNode(value=" and "),
+                            LeafNode(tag="i", value="italic"),
+                            LeafNode(value=" words inside of it.")
+                            ]
+                    ),
+                    ParentNode(
+                        tag="ul",
+                        children=[ParentNode(
+                            tag="li",
+                            children=[
+                                LeafNode(
+                                    value="This is the first list item in a list block"
+                                )
+                            ]
+                        ),
+                        ParentNode(
+                            tag="li",
+                            children=[
+                                LeafNode(
+                                    value="This is a list item"
+                                )
+                            ]
+                        ),
+                        ParentNode(
+                            tag="li",
+                            children=[
+                                LeafNode(
+                                    value="This is another list item"
+                                )
+                            ]
+                        )]
                     )
                 ]
             ))

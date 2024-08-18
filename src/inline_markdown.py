@@ -23,7 +23,6 @@ def split_nodes_delimiter(
     def split_node_text(node):
         return node.text.split(delimiter)
     
-    
     for old_node in old_nodes_copy:
         if old_node.text_type != "text":
             new_nodes.append(old_node)

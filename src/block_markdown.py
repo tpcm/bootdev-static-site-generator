@@ -89,8 +89,107 @@ def text_to_children(text):
 def apply_nested_tag_to_list_item(child_node):
     return ParentNode(
         tag="li",
-        children=child_node
+        children=[child_node]
     )
+
+def heading_to_html(block):
+    if not block.startswith("#"):
+        raise ValueError("Invalid heading block")
+    tag = get_heading_tag(block)
+    num_hashtag = int(tag[-1])
+    block = block[num_hashtag+1:]
+    child_nodes = text_to_children(block)
+    return ParentNode(
+                tag=tag,
+                children=child_nodes
+            )
+
+def code_to_html(block):
+    if not block.startswith("```") and not block.endswith("```"):
+        raise ValueError("Invalid code block")
+    
+    block = " ".join(block[3:-3].split("\n"))
+    child_nodes = text_to_children(text=block)
+    return ParentNode(
+            tag="pre",
+            children=ParentNode(
+                tag="code",
+                children=child_nodes
+            )
+        )
+
+def quote_to_html(block):
+    lines = list(filter(None, block.split("\n", )))
+    stripped_quote = list(filter(None, map(lambda x: x.lstrip(">").strip() if x[0] == ">" else None, lines)))
+    if not len(stripped_quote) != len(lines):
+        raise ValueError("Invalid quote block")
+    block = " ".join(stripped_quote)
+    child_nodes = text_to_children(text=block)
+    return ParentNode(
+        tag="blockquote",
+        children=child_nodes
+    )
+
+def paragraph_to_html(block):
+    child_nodes = text_to_children(" ".join(block.split("\n")))
+    return ParentNode(
+        tag="p",
+        children=child_nodes
+    )
+
+def unordered_list_to_html(block):
+    lines = block.split("\n")
+    is_ul = list(filter(None, map(lambda x: x[1:].strip() if (x[0] == "*") | (x[0] == "-") else None, lines)))
+    if len(is_ul) != len(lines):
+        raise ValueError("Invalid unordered list block")
+    child_nodes = [
+        ParentNode(
+            tag="li",
+            children=text_to_children(child)
+        ) for child in is_ul
+    ]
+    return ParentNode(
+                tag="ul",
+                children=child_nodes
+            )
+
+def ordered_list_to_html(block):
+    lines = block.split("\n")
+    child_nodes = []
+    counter = 1
+    for line in lines:
+        if line[:2] != f"{counter}.":
+            raise ValueError("Invalid ordered list block")
+        counter+=1
+        text = line.lstrip(f"{counter}.").strip()
+        child_nodes.append(
+            ParentNode(
+                tag="li",
+                children=text_to_children(text)
+            )
+        )
+    return ParentNode(
+                tag="ol",
+                children=child_nodes
+            )
+
+def block_to_html_node(block):
+    block_type = block_to_block_type(
+            block=block
+        )
+    if block_type == block_type_heading:
+        return heading_to_html(block)
+    elif block_type == block_type_quote:
+        return quote_to_html(block)
+    elif block_type == block_type_code:
+        return code_to_html(block)
+    elif block_type == block_type_paragraph:
+        return paragraph_to_html(block)
+    elif block_type == block_type_unordered_list:
+        return unordered_list_to_html(block)
+    elif block_type == block_type_ordered_list:
+        return ordered_list_to_html(block)
+    return ValueError("Invalid block type")
 
 def markdown_to_html_node(markdown):
     blocks = markdown_to_blocks(
@@ -98,65 +197,22 @@ def markdown_to_html_node(markdown):
     )
     block_html_nodes = []
     for block in blocks:
-        child_nodes = text_to_children(block)
-        block_type = block_to_block_type(
-            block=block
-        )
-        if block_type == block_type_code:
-            block_html_node = ParentNode(
-            tag="pre",
-            children=ParentNode(
-                tag=get_block_tag(block_type),
-                children=child_nodes
-            )
-        )
-        elif block_type == block_type_heading:
-            block_html_node = ParentNode(
-                tag=get_heading_tag(block),
-                children=child_nodes
-            )
-        elif (block_type == block_type_unordered_list) | (block_type == block_type_ordered_list):
-            block_html_node = ParentNode(
-                tag=get_block_tag(block_type),
-                children=list(map(apply_nested_tag_to_list_item, child_nodes))
-            )
-        else:
-            block_html_node = ParentNode(
-                tag=get_block_tag(block_type),
-                children=child_nodes
-            )
-        block_html_nodes.append(block_html_node)
+        block_html_nodes.append(block_to_html_node(block))
     return ParentNode(
         tag="div",
         children=block_html_nodes
     )
 
 def main():
-#     markdown = """# This is a heading
+    markdown = """# This is a heading
 
-# This is a paragraph of text. It has some **bold** and *italic* words inside of it.
+This is a paragraph of text. It has some **bold** and *italic* words inside of it.
 
-# * This is the first list item in a list block
-# * This is a list item
-# * This is another list item"""
-
-#     print(markdown_to_html_node(markdown))
-    markdown = "# This is a heading\n\nThis is a paragraph of text. It has some words inside of it."
+* This is the first list item in a list block
+* This is a list item
+* This is another list item"""
     html_nodes = markdown_to_html_node(markdown)
     print(html_nodes)
-    print(ParentNode(
-        tag="div",
-        children=[
-            ParentNode(
-                tag="h1",
-                children=[LeafNode(value="# This is a heading")]
-            ),
-            ParentNode(
-                tag="paragraph",
-                children=[LeafNode(value="This is a paragraph of text. It has some words inside of it.")]
-            )
-        ]
-    ))
 
 if __name__ == "__main__":
     main()
