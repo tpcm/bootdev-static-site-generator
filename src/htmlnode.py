@@ -1,4 +1,5 @@
 import functools
+from loguru import logger
 
 class HTMLNode:
     def __init__(self, tag: str | None = None, value: str | None = None, children: list | None = None, props: dict | None = None):
@@ -11,9 +12,11 @@ class HTMLNode:
         raise NotImplementedError()
     
     def prop_to_html(self):
+        if not self.props:
+            return ""
         def format_value(tup):
             return f"{tup[0]}=\"{tup[1]}\""
-        return " ".join(map(format_value, self.props.items()))
+        return " " + " ".join(map(format_value, self.props.items()))
     
     def __repr__(self):
         return f"HTMLNode({self.tag} {self.value} {self.children} {self.props})"
@@ -23,11 +26,11 @@ class LeafNode(HTMLNode):
         super().__init__(tag=tag, value=value, children=None, props=props)
     
     def to_html(self) -> str:
-        if not self.value:
+        if self.value is None:
             raise ValueError()
         if not self.tag:
             return self.value
-        return f"<{self.tag}>{self.value}</{self.tag}>"
+        return f"<{self.tag}{self.prop_to_html()}>{self.value}</{self.tag}>"
 
 class ParentNode(HTMLNode):
     def __init__(self, tag: str | None, children: list, props: dict | None = None):
@@ -40,7 +43,8 @@ class ParentNode(HTMLNode):
             raise ValueError() 
         def apply_to_html(child):
             return child.to_html()
-        return f"<{self.tag}>" + "".join(map(apply_to_html, self.children)) + f"</{self.tag}>"
+        # logger.debug(self.children)
+        return f"<{self.tag}{self.prop_to_html()}>" + "".join(map(apply_to_html, self.children)) + f"</{self.tag}>"
     
 def main():
     try:

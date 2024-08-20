@@ -1,3 +1,4 @@
+from loguru import logger
 from htmlnode import HTMLNode, ParentNode, LeafNode
 from inline_markdown import text_to_textnodes
 from textnode import text_node_to_html_node
@@ -35,7 +36,7 @@ def block_to_block_type(block):
         return sum(first_char) == len(lines)
     
     def is_unordered_list(lines):
-        first_char = list(map(lambda x: True if (x[0] == "*") | (x[0] == "-") else False, lines))
+        first_char = list(map(lambda x: True if (x.startswith("* ")) | (x.startswith("- ")) else False, lines))
         return sum(first_char) == len(lines)
     
     def is_ordered_list(lines):
@@ -112,16 +113,18 @@ def code_to_html(block):
     child_nodes = text_to_children(text=block)
     return ParentNode(
             tag="pre",
-            children=ParentNode(
+            children=[ParentNode(
                 tag="code",
                 children=child_nodes
-            )
+            )]
         )
 
 def quote_to_html(block):
     lines = list(filter(None, block.split("\n", )))
+    # logger.debug(lines)
     stripped_quote = list(filter(None, map(lambda x: x.lstrip(">").strip() if x[0] == ">" else None, lines)))
-    if not len(stripped_quote) != len(lines):
+    # logger.debug(stripped_quote)
+    if len(stripped_quote) != len(lines):
         raise ValueError("Invalid quote block")
     block = " ".join(stripped_quote)
     child_nodes = text_to_children(text=block)
@@ -139,7 +142,9 @@ def paragraph_to_html(block):
 
 def unordered_list_to_html(block):
     lines = block.split("\n")
-    is_ul = list(filter(None, map(lambda x: x[1:].strip() if (x[0] == "*") | (x[0] == "-") else None, lines)))
+    # logger.debug(lines)
+    is_ul = list(filter(None, map(lambda x: x[2:].strip() if (x.startswith("* ")) | (x.startswith("- ")) else None, lines)))
+    # logger.debug(is_ul)
     if len(is_ul) != len(lines):
         raise ValueError("Invalid unordered list block")
     child_nodes = [
@@ -161,7 +166,9 @@ def ordered_list_to_html(block):
         if line[:2] != f"{counter}.":
             raise ValueError("Invalid ordered list block")
         counter+=1
-        text = line.lstrip(f"{counter}.").strip()
+        # logger.info(line)
+        text = line[2:].strip()
+        # logger.info(text)
         child_nodes.append(
             ParentNode(
                 tag="li",
